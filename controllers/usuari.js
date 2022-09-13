@@ -184,6 +184,27 @@ function veureArxiuImatge(req, res){
         }
 }
 
+function borrarImatge(req, res){
+    var imatgeId = req.params.id;
+    
+    Imatge.findByIdAndDelete(imatgeId, (err,imatgeBorrat) =>{
+        if(err){
+            res.status(500).send({message: "Error al borrar la imatge"});
+        }else{
+            if(!imatgeBorrat){
+                res.status(404).send({message: "No s'ha pogut borrar la imatge"});
+            }else{
+                var imageFile = imatgeBorrat.arxiu; //Indicarem com a parametre en el slug el nom del arxiu i si existeix ens retornarà l'arxiu sense necessitat de mostrar la ruta a on esta enmagatzemat l'arxiu.
+                var path_file = './uploads/users/' + imageFile;
+                if(fs.existsSync(path_file)){
+                    fs.rm(path_file);
+                }
+                res.status(200).send({imatge: imatgeBorrat});
+            }
+        }
+    });
+}
+
 module.exports = {
     proves,
     guardarUsuari,
@@ -193,5 +214,6 @@ module.exports = {
     borrarUsuari,
     uploadImages,
     veureImgUsuari,
-    veureArxiuImatge
+    veureArxiuImatge,
+    borrarImatge
 };
