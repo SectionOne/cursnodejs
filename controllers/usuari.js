@@ -5,6 +5,8 @@ const Imatge = require("../models/imatge");
 var Usuari = require("../models/usuari"); 
 var fs = require('fs'); //Pert treballar amb el sistema de fitxers
 var path = require('path');
+var bcrypt = require("bcrypt");
+var salt = 10;
 
 function proves(req, res){
     res.status(200).send({
@@ -19,22 +21,23 @@ function guardarUsuari(req, res){
     usuari.nom = params.nom;
     usuari.cognom = params.cognom;
     usuari.email = params.email;
-    usuari.clau = params.clau;
-
+    usuari.clau = 123456;
     //console.log(params);
-
-    if(usuari.nom != null && usuari.cognom != null && usuari.email != null && usuari.clau != null ){
-        usuari.save((err, usuariStored) => {
-            if(err){
-                res.status(500).send({message: "Error al guardar l'usuari"});
-            } else {
-                if(!usuariStored){
-                    res.status(404).send({message: "No s'ha registrat l'usuari"});
+    if(usuari.nom != null && usuari.cognom != null && usuari.email != null && params.clau != null ){
+        var clauencriptada = bcrypt.hash(params.clau, salt, function(err, clauencriptada) {
+            usuari.clau = clauencriptada;
+            usuari.save((err, usuariStored) => {
+                if(err){
+                    res.status(500).send({message: "Error al guardar l'usuari"});
                 } else {
-                    res.status(200).send({usuari: usuariStored});
+                    if(!usuariStored){
+                        res.status(404).send({message: "No s'ha registrat l'usuari"});
+                    } else {
+                        res.status(200).send({usuari: usuariStored});
+                    }
                 }
-            }
-        })
+            })
+        });
     } else {
         res.status(402).send({message: "Indica totes les dades"});
     }
@@ -205,6 +208,37 @@ function borrarImatge(req, res){
     });
 }
 
+function loginUser(req, res){
+    //Checkin de si existeix el email i clau en la bd
+    var params = req.body;
+    var email = params.email;
+    var clau = params.clau;
+
+    Usuari.findOneAndDelete({email: email.toLowerCase()}, (err, user) => {
+        if(err){
+            res.status(500).send({message: "Error en la solicitud"});
+        } else {
+            if(!user){
+                res.status(404).send({message: "L'usuari no existeix"});
+            } else {
+                //Comprobar la clau
+                bcrypt.compare(clau, user.clau, function(err, check){
+                    if(check){
+                        //Retornar les dades de l'usuari identificat
+                        if(params.gethash){ //Si li aportem el parametre gethash generara un token amb totes les dades de l'usuari codificades
+                            //Retornar un token de jwt
+                        } else {
+                            res.status(200).send({user});
+                        }
+                    } else {
+                        res.status(404).send({message: "L'usuari no existeix"});
+                    }
+                });
+            }
+        }
+    })
+}
+
 module.exports = {
     proves,
     guardarUsuari,
@@ -215,5 +249,6 @@ module.exports = {
     uploadImages,
     veureImgUsuari,
     veureArxiuImatge,
-    borrarImatge
+    borrarImatge,
+    loginUser
 };
