@@ -214,13 +214,15 @@ function loginUser(req, res){
     var email = params.email;
     var clau = params.clau;
 
-    Usuari.findOneAndDelete({email: email.toLowerCase()}, (err, user) => {
+    Usuari.findOne({email: email.toLowerCase()}, (err, user) => {
         if(err){
             res.status(500).send({message: "Error en la solicitud"});
         } else {
             if(!user){
                 res.status(404).send({message: "L'usuari no existeix"});
             } else {
+                console.log(clau);
+                console.log(user.clau);
                 //Comprobar la clau
                 bcrypt.compare(clau, user.clau, function(err, check){
                     if(check){
@@ -231,7 +233,7 @@ function loginUser(req, res){
                             res.status(200).send({user});
                         }
                     } else {
-                        res.status(404).send({message: "L'usuari no existeix"});
+                        res.status(404).send({message: "L'usuari no existent"});
                     }
                 });
             }
