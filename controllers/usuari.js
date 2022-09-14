@@ -208,7 +208,7 @@ function borrarImatge(req, res){
     });
 }
 
-function loginUser(req, res){
+function loginUser(req, res){ 
     //Checkin de si existeix el email i clau en la bd
     var params = req.body;
     var email = params.email;
