@@ -3,10 +3,10 @@ var jwt = require("jwt-simple");
 var moment = require("moment"); //Executem npm i moment
 var secret = "cibernarium";
 
-exports.ensureAuth = function(req, res, jwt){
+exports.ensureAuth = function(req, res, next){
     //recollir l'autorització amb un header o encapçalament
     if(!req.headers.authorization){
-        return res.status(403).send({message: "L'autorització no te la capçalera d'atentificació"})
+        return res.status(403).send({message: "L'autorització no te la capçalera d'atentificació"});
     }
 
     var token = req.headers.authorization.replace(/['"]+/g, ''); //Recupedrem el token i treiem caracters especials
@@ -19,11 +19,11 @@ exports.ensureAuth = function(req, res, jwt){
         }
     }catch(ex){
         console.log(ex);
-        returnres.status(404).send({message: "El token no és vàlid"});
+        return res.status(404).send({message: "El token no és vàlid"});
     }
 
-    //Afegim dins de la petició totes les dades del usuari
+    //Afegim dins de la petició totes les dades del usuari identificat
     req.user = payload;
 
-    next();
+    next(); //Per sortir del middleware i continuar
 }
